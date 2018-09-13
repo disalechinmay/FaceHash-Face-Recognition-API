@@ -80,9 +80,10 @@
 			    cache: false,
 			    contentType: false,
 			    processData: false,
-			    data: formData})
-			        .done(function(e){
-			            alert('done!');
+			    data: formData })
+			        .done(function(response){
+				    	json_string = JSON.stringify(response);
+	  			    	alert("RESPONSE:\n" + json_string);
 			        });
 		}
 
