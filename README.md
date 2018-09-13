@@ -2,8 +2,8 @@
 Minimal API for face recognition.   
 <br>
 [![start here](https://img.shields.io/badge/Coverage-5%25-yellow.svg?longCache=true&style=for-the-badge)](https://github.com/disalechinmay/FaceHash-Face-Recognition-API/blob/master/README.md)
-
-<br>
+.
+<br><br>
 [![start here](https://img.shields.io/badge/Request-START%20HERE!-brightgreen.svg?longCache=true&style=for-the-badge)](https://github.com/disalechinmay/FaceHash-Face-Recognition-API/blob/master/README.md)
 
 **The project will be built in quite an unusual way.**
