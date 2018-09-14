@@ -2,9 +2,12 @@
 <html>
 <head>
 	<title>Client</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
 	<script type="text/javascript">
 		
 		(function(){
+
 			"use strict";
 			var video;
 			var scale = 0.25;
@@ -41,6 +44,10 @@
 
 		function sendImage()
 		{
+
+			var ldiv = document.getElementById('LoadingDiv');
+			ldiv.style.visibility = 'visible';
+
 			var url = "http://127.0.0.1:5000/recognize/";
 	        var img = document.querySelector("#imageCaptured");
 			var image = img.src;
@@ -54,6 +61,8 @@
 			formData.append('userName', String(userName));
 			formData.append('API_KEY', String('API_KEY_TEST_1'));
 
+
+
 			$.ajax({
 			    url: url, 
 			    type: "POST", 
@@ -62,17 +71,23 @@
 			    processData: false,
 			    data: formData })
 			        .done(function(response){
+	    				ldiv.style.visibility = 'hidden';
 				    	json_string = JSON.stringify(response);
 	  			    	alert("RESPONSE:\n" + json_string);
 			        });
+		
 		}
-
 
 		function retrain()
 		{
+
+			var ldiv = document.getElementById('LoadingDiv');
+			ldiv.style.visibility = 'visible';
+
 			var noOfImages = 0;
+			var targetNoOfImages = 100;
 			var stream = "";
-			while(noOfImages != 2)
+			while(noOfImages != targetNoOfImages)
 			{
 				var video = document.querySelector("#player");
 		        var canvas = document.createElement("canvas");
@@ -85,14 +100,22 @@
 		        data = canvas.toDataURL();
        			var base64ImageContent = data.replace(/^data:image\/(png|jpg);base64,/, "");
 
-       			stream += String(base64ImageContent) + "[IMAGE_STREAM_DELIMITER]";
+       			if(noOfImages < targetNoOfImages-1)
+      				stream += String(base64ImageContent) + "[IMAGE_STREAM_DELIMITER]";
+       			else
+       				stream += String(base64ImageContent);
 
        			noOfImages++;
 			}
 
+
+			// Retrieving userName from textbox
+		    var userName = document.getElementById("userName").value;
+
 			var formData = new FormData();
 			formData.append('stream', String(stream));
 			formData.append('API_KEY', String('API_KEY_TEST_1'));
+			formData.append('userName', String(userName));
 			var url = "http://127.0.0.1:5000/train/";
 
 			$.ajax({
@@ -103,14 +126,31 @@
 			    processData: false,
 			    data: formData })
 			        .done(function(response){
+			        	ldiv.style.visibility = 'hidden';
 				    	json_string = JSON.stringify(response);
 	  			    	alert("RESPONSE:\n" + json_string);
+
 			        });
 		}
 
 	</script>
 
 	<style type="text/css">
+		#LoadingDiv
+		{
+				margin:0px 0px 0px 0px;
+				position:absolute;
+				top: 0px;
+				left: 0px;
+				height: 90%;
+				z-index:9999;
+				padding-top:200px;
+				padding-left:50px;
+				width:90%;
+				clear:none;
+				background-color: white;
+		}
+
 		body{
 			text-align: center;
 			margin: 100px;
@@ -128,7 +168,6 @@
 		}
 	</style>
 
-	 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 </head>
 <body>
 
@@ -144,5 +183,8 @@
 	<br>
 	<button onclick="sendImage()">RECOGNIZE</button>
 	<button onclick="retrain()">TRAIN</button>
+
+	<div id="LoadingDiv" style="visibility: hidden;">
+		<img height="150px" width="230px" src="loading.gif" alt="" /></div>
 </body>
 </html>
