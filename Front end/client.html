@@ -2,8 +2,12 @@
 <html>
 <head>
 	<title>Client</title>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-
+	<link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
+    
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  
+ 	<script src="jquery-3.3.1.min.js"></script>
 	<script type="text/javascript">
 		
 		(function(){
@@ -27,21 +31,6 @@
 
 		})();
 
-		function react()
-		{
-			var video = document.querySelector("#player");
-	        var canvas = document.createElement("canvas");
-	        var scale = 1.0;
-	        canvas.width = video.videoWidth * scale;
-	        canvas.height = video.videoHeight * scale;
-	        canvas.getContext('2d')
-	              .drawImage(video, 0, 0, canvas.width, canvas.height);
-	 
-	        var img = document.querySelector("#imageCaptured");
-	        	img.src = canvas.toDataURL();
-	
-        }
-
 		function sendImage()
 		{
 
@@ -49,9 +38,16 @@
 			ldiv.style.visibility = 'visible';
 
 			var url = "http://127.0.0.1:5000/recognize/";
-	        var img = document.querySelector("#imageCaptured");
-			var image = img.src;
-			var base64ImageContent = image.replace(/^data:image\/(png|jpg);base64,/, "");
+			var video = document.querySelector("#player");
+	        var canvas = document.createElement("canvas");
+	        var scale = 1.0;
+	        canvas.width = video.videoWidth * scale;
+	        canvas.height = video.videoHeight * scale;
+	        canvas.getContext('2d')
+	              .drawImage(video, 0, 0, canvas.width, canvas.height);
+
+	        data = canvas.toDataURL();
+   			var base64ImageContent = data.replace(/^data:image\/(png|jpg);base64,/, "");
 
 			// Retrieving userName from textbox
 		    var userName = document.getElementById("userName").value;
@@ -69,10 +65,14 @@
 			    cache: false,
 			    contentType: false,
 			    processData: false,
-			    data: formData })
+			    data: formData, 
+			    error: function(XMLHttpRequest, textStatus, errorThrown) { 
+    				ldiv.style.visibility = 'hidden';
+        			alert("Status: " + textStatus); 
+    			}})
 			        .done(function(response){
 	    				ldiv.style.visibility = 'hidden';
-				    	json_string = JSON.stringify(response);
+				    	json_string = JSON.stringify(response, null, '\t');
 	  			    	alert("RESPONSE:\n" + json_string);
 			        });
 		
@@ -124,10 +124,14 @@
 			    cache: false,
 			    contentType: false,
 			    processData: false,
-			    data: formData })
+			    data: formData, 
+			    error: function(XMLHttpRequest, textStatus, errorThrown) { 
+    				ldiv.style.visibility = 'hidden';
+        			alert("Status: " + textStatus); 
+    			} })
 			        .done(function(response){
 			        	ldiv.style.visibility = 'hidden';
-				    	json_string = JSON.stringify(response);
+				    	json_string = JSON.stringify(response, null, '\t');
 	  			    	alert("RESPONSE:\n" + json_string);
 
 			        });
@@ -157,6 +161,15 @@
 			padding: 0px;
 		}
 
+		.cropcircle{
+		    width: 250px;
+		    height: 250px;
+		    border-radius: 100%;
+		    background: #eee no-repeat center;
+		    background-size: cover;
+		}
+
+
 		#player{
 			width: 20%;
 			height: 20%;
@@ -166,25 +179,29 @@
 			width: 20%;
 			height: 20%;
 		}
+
+		#userName{
+			width: 30%;
+		}
+		button{
+			margin: 10px;
+		}
 	</style>
 
 </head>
 <body>
 
-	<video id="player" autoplay="true"></video>
-
-	<img id="imageCaptured">
-
-	<br>
-	<button id="capture" onclick="react()">CAPTURE</button>
+	<video id="player" autoplay="true" class="cropcircle"></video>
 
 	<br><br>
-	Username:<input type="text" id="userName"></input>
-	<br>
-	<button onclick="sendImage()">RECOGNIZE</button>
-	<button onclick="retrain()">TRAIN</button>
+	<input type="text" id="userName" placeholder="Username"></input>
+	<br><br>
+	<button class="waves-effect waves-light btn" onclick="sendImage()">RECOGNIZE</button>
+	<button class="waves-effect waves-light btn" onclick="retrain()">TRAIN</button>
 
 	<div id="LoadingDiv" style="visibility: hidden;">
 		<img height="150px" width="230px" src="loading.gif" alt="" /></div>
+
+    <script type="text/javascript" src="js/materialize.min.js"></script>
 </body>
 </html>
