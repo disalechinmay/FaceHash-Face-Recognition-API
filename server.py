@@ -5,11 +5,24 @@ from flask_cors import CORS, cross_origin
 app = Flask(__name__)
 CORS(app)
 
-@app.route('/', methods=['POST'])
-def hello_world():
+@app.route('/train/', methods=['POST'])
+def train_POST():
 	import tensorflow as tf
 	tf.keras.backend.clear_session()
 
+	incomingStream = request.form.get('stream')
+	print(incomingStream)
+	splitted = incomingStream.split("[IMAGE_STREAM_DELIMITER]")
+	print(len(splitted))
+
+	return "TRUE"
+
+@app.route('/recognize/', methods=['POST'])
+def recognize_POST():
+	import tensorflow as tf
+	tf.keras.backend.clear_session()
+
+	import os
 	import io
 	import cv2
 	import base64 
@@ -32,9 +45,32 @@ def hello_world():
 
 	incomingImage = request.form.get('picture')
 	decoded = toRGB(stringToImage(base64.decodestring(stringToBase64(incomingImage))))
-	#cv2.imwrite("/home/chinmay/MASTERS/myGENImage.jpg", decoded)
-	#cv2.imshow("TEST", decoded)
 
+
+	API_KEY = request.form.get('API_KEY')
+	# Check if API_KEY is correct
+	API_KEY_CORRECT_FLAG = False
+	lines = [line.rstrip('\n') for line in open('API_KEYS')]
+	for line in lines:
+		tempList = line.split()
+		if(tempList[0] == API_KEY):
+			API_KEY_CORRECT_FLAG = True
+
+	if(API_KEY_CORRECT_FLAG == False):
+		return jsonify(
+			responseType = "ERROR",
+			errorDescription = "API_KEY is invalid!"
+		)
+
+
+	incomingUserName = request.form.get('userName')
+	# Check if userName's keras model exists in HOME:API_KEY
+	masterPath = "/home/chinmay/MASTERS/Flask/HOME:" + API_KEY + "/" + incomingUserName + ".keras"
+	if not os.path.exists(masterPath):
+		return jsonify(
+			responseType = "ERROR",
+			errorDescription = "Username is invalid!"
+		)
 
 	def recognizeFace(frame):
 		import cv2
@@ -54,9 +90,9 @@ def hello_world():
 		import os
 		os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 		
-		print("LOADING MODEL...")
-		model = keras.models.load_model('kerasFaceHash')
-		print("MODEL LOADED.")
+		print("[LOG] -> LOADING MODEL...")
+		model = keras.models.load_model(masterPath)
+		print("[LOG] -> MODEL LOADED.")
 
 		# Basically finds distance between 2 points
 		# Arguments:
@@ -74,14 +110,11 @@ def hello_world():
 			return distance
 
 
-		print("IMPORTING CASCADE AND DLIB...")
+		print("[LOG] -> IMPORTING CASCADE AND DLIB...")
 		#Importing Haar cascade and DLIB's facial landmarks detector
 		face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 		predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
-		print("CASCADE AND DLIB IMPORTED.")
-
-		# Precision in % -> Tunes the recognizer according to our need
-		precision = 0.95
+		print("[LOG] -> CASCADE AND DLIB IMPORTED.")
 
 		targetPoints = []
 
@@ -96,19 +129,15 @@ def hello_world():
 		# Holds number of ratios as defined by the map
 		totalTargets = int(len(targetPoints))
 
-		detections = 0
-		detectionIndices = []
-
-
 		#Convert the frame to grayscale
 		grayFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
 		#Activating Haar cascade classifier to detect faces
 		faces = face_cascade.detectMultiScale(grayFrame, scaleFactor = 1.5, minNeighbors = 5)
 
-		print("STARTING FACE DETECTION.")
+		print("[LOG] -> STARTING FACE DETECTION.")
 		for(x, y, w, h) in faces :
-			print("FOUND A FACE.")
+			print("[LOG] -> FOUND A FACE.")
 			pillowImage = Image.fromarray(frame[y:y+h, x:x+w])
 			#Resizing dimensions
 			resizedHeight = 300
@@ -133,14 +162,7 @@ def hello_world():
 
 				foundFlag = 0
 
-				# Stores usernames of trained faces
-				usernames = []
-				lines = [line.rstrip('\n') for line in open('dataStore.txt')]
-				for line in lines:
-					tempList = line.split()
-					usernames.append(tempList[0])
-
-				print("SENDING FACE TO KERAS...")
+				print("[LOG] -> SENDING FACE TO KERAS...")
 
 				# Keras neural net
 				npratios = []
@@ -151,9 +173,9 @@ def hello_world():
 
 				start_time = time.time()
 				kerasOutput = model.predict(npratios)
-				print("--- Detection time: %s seconds ---" % (time.time() - start_time))
-				print("\nKERAS O/P: {}".format(kerasOutput))
-				# print("\nMAP: [Bobby, Omkar, Chinmay, Sumit, Arjun]")
+				detection_time = time.time()-start_time
+				#print("--- Detection time: %s seconds ---" % (time.time() - start_time))
+				#print("\nKERAS O/P: {}".format(kerasOutput))
 				maxval = -1
 				maxid = -1
 				for x in range(0, len(kerasOutput[0])):
@@ -163,37 +185,28 @@ def hello_world():
 
 				#print("\nMAX CONFIDENCE FOR : {}".format(usernames[maxid]))
 
-				if(maxid != -1):
-					userName = usernames[maxid]
-
-					print("MAX CONFIDENCE FOR {}".format(userName))
-					return userName
-					break
-
-
-		del model
-		del face_cascade
-		del predictor
-		del precision
-		del targetPoints
-		del lines
-		del detectionIndices
-		del detections
-		del grayFrame
-		del faces	
-
-		return -1	
+				if(maxid == 2):
+					confidence = kerasOutput[0][2]
+					print("[LOG] -> RETURNING SUCCESS...")
+					return jsonify(
+						responseType = "SUCCESS",
+						successDescription = "Face recognized successfully",
+						confidencePercentage = str(confidence),
+						detectionTime = str(detection_time)
+					)
+				else:
+					print("[LOG] -> RETURNING FAILURE...")
+					return jsonify(
+						responseType = "FAILURE",
+						failureDescription = "Face not recognized",
+					)
+		
+		print("[LOG] -> RETURNING FAILURE...")
+		return jsonify(
+			responseType = "FAILURE",
+			failureDescription = "Face not detected",
+		)
 
 	# decoded contains image which can be read by opencv
 	result = recognizeFace(decoded)
-
-	if(result == -1):
-		return jsonify(
-			foundFlag = 0,
-			foundFace = "NOT FOUND"
-		)
-	else:
-		return jsonify(
-			foundFlag = 1,
-			foundFace = result
-		)
+	return result

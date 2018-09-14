@@ -39,40 +39,20 @@
 	
         }
 
-		function base64ToBlob(base64, mime) 
-		{
-		    mime = mime || '';
-		    var sliceSize = 1024;
-		    var byteChars = window.atob(base64);
-		    var byteArrays = [];
-
-		    for (var offset = 0, len = byteChars.length; offset < len; offset += sliceSize) {
-		        var slice = byteChars.slice(offset, offset + sliceSize);
-
-		        var byteNumbers = new Array(slice.length);
-		        for (var i = 0; i < slice.length; i++) {
-		            byteNumbers[i] = slice.charCodeAt(i);
-		        }
-
-		        var byteArray = new Uint8Array(byteNumbers);
-
-		        byteArrays.push(byteArray);
-		    }
-
-		    return new Blob(byteArrays, {type: mime});
-		}
-
 		function sendImage()
 		{
-			var url = "http://127.0.0.1:5000/";
+			var url = "http://127.0.0.1:5000/recognize/";
 	        var img = document.querySelector("#imageCaptured");
 			var image = img.src;
 			var base64ImageContent = image.replace(/^data:image\/(png|jpg);base64,/, "");
-			console.log(String(base64ImageContent));
-			var blob = base64ToBlob(base64ImageContent, 'image/png');                
-			//alert(blob)
+
+			// Retrieving userName from textbox
+		    var userName = document.getElementById("userName").value;
+
 			var formData = new FormData();
 			formData.append('picture', String(base64ImageContent));
+			formData.append('userName', String(userName));
+			formData.append('API_KEY', String('API_KEY_TEST_1'));
 
 			$.ajax({
 			    url: url, 
@@ -88,11 +68,52 @@
 		}
 
 
+		function retrain()
+		{
+			var noOfImages = 0;
+			var stream = "";
+			while(noOfImages != 2)
+			{
+				var video = document.querySelector("#player");
+		        var canvas = document.createElement("canvas");
+		        var scale = 1.0;
+		        canvas.width = video.videoWidth * scale;
+		        canvas.height = video.videoHeight * scale;
+		        canvas.getContext('2d')
+		              .drawImage(video, 0, 0, canvas.width, canvas.height);
+
+		        data = canvas.toDataURL();
+       			var base64ImageContent = data.replace(/^data:image\/(png|jpg);base64,/, "");
+
+       			stream += String(base64ImageContent) + "[IMAGE_STREAM_DELIMITER]";
+
+       			noOfImages++;
+			}
+
+			var formData = new FormData();
+			formData.append('stream', String(stream));
+			formData.append('API_KEY', String('API_KEY_TEST_1'));
+			var url = "http://127.0.0.1:5000/train/";
+
+			$.ajax({
+			    url: url, 
+			    type: "POST", 
+			    cache: false,
+			    contentType: false,
+			    processData: false,
+			    data: formData })
+			        .done(function(response){
+				    	json_string = JSON.stringify(response);
+	  			    	alert("RESPONSE:\n" + json_string);
+			        });
+		}
+
 	</script>
 
 	<style type="text/css">
 		body{
-			margin: 0px;
+			text-align: center;
+			margin: 100px;
 			padding: 0px;
 		}
 
@@ -113,11 +134,15 @@
 
 	<video id="player" autoplay="true"></video>
 
-	<br>
-	<button id="capture" onclick="react()">CAPTURE</button>
 	<img id="imageCaptured">
 
 	<br>
-	<button onclick="sendImage()">SEND IMAGE</button>
+	<button id="capture" onclick="react()">CAPTURE</button>
+
+	<br><br>
+	Username:<input type="text" id="userName"></input>
+	<br>
+	<button onclick="sendImage()">RECOGNIZE</button>
+	<button onclick="retrain()">TRAIN</button>
 </body>
 </html>
