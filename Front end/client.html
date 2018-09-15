@@ -37,7 +37,7 @@
 			var ldiv = document.getElementById('LoadingDiv');
 			ldiv.style.visibility = 'visible';
 
-			var url = "http://127.0.0.1:5000/recognize/";
+			var url = "http://facehash-face-recognition-api-dev.ap-south-1.elasticbeanstalk.com/recognize/";
 			var video = document.querySelector("#player");
 	        var canvas = document.createElement("canvas");
 	        var scale = 1.0;
@@ -116,7 +116,7 @@
 			formData.append('stream', String(stream));
 			formData.append('API_KEY', String('API_KEY_TEST_1'));
 			formData.append('userName', String(userName));
-			var url = "http://127.0.0.1:5000/train/";
+			var url = "http://facehash-face-recognition-api-dev.ap-south-1.elasticbeanstalk.com/train/";
 
 			$.ajax({
 			    url: url, 
