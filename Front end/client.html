@@ -31,20 +31,14 @@
 
 		})();
 
-		var serverIP = "127.0.0.1:5000";
-
-		function setServer()
-		{
-			serverIP = document.getElementById("userName").value;
-		}
-
 		function sendImage()
 		{
 
 			var ldiv = document.getElementById('LoadingDiv');
 			ldiv.style.visibility = 'visible';
-
-			var url = "http://" + serverIP + "/recognize/";
+			
+			var serverIP = document.getElementById("serverIP").value;
+			var url = "http://" + String(serverIP) + "/recognize/";
 			var video = document.querySelector("#player");
 	        var canvas = document.createElement("canvas");
 	        var scale = 1.0;
@@ -123,6 +117,8 @@
 			formData.append('stream', String(stream));
 			formData.append('API_KEY', String('API_KEY_TEST_1'));
 			formData.append('userName', String(userName));
+	
+			var serverIP = document.getElementById("serverIP").value;
 			var url = "http://" + serverIP + "/train/";
 
 			$.ajax({
@@ -209,8 +205,6 @@
 	<br><br>
 	<input type="text" id="serverIP" placeholder="Server IP" value="127.0.0.1:5000"></input>
 	<br><br>
-	<button class="waves-effect waves-light btn" onclick="setServer()">SET SERVER IP</button>
-
 
     <script type="text/javascript" src="js/materialize.min.js"></script>
 </body>
