@@ -31,13 +31,20 @@
 
 		})();
 
+		var serverIP = "127.0.0.1:5000";
+
+		function setServer()
+		{
+			serverIP = document.getElementById("userName").value;
+		}
+
 		function sendImage()
 		{
 
 			var ldiv = document.getElementById('LoadingDiv');
 			ldiv.style.visibility = 'visible';
 
-			var url = "http://facehash-face-recognition-api-dev.ap-south-1.elasticbeanstalk.com/recognize/";
+			var url = "http://" + serverIP + "/recognize/";
 			var video = document.querySelector("#player");
 	        var canvas = document.createElement("canvas");
 	        var scale = 1.0;
@@ -116,7 +123,7 @@
 			formData.append('stream', String(stream));
 			formData.append('API_KEY', String('API_KEY_TEST_1'));
 			formData.append('userName', String(userName));
-			var url = "http://facehash-face-recognition-api-dev.ap-south-1.elasticbeanstalk.com/train/";
+			var url = "http://" + serverIP + "/train/";
 
 			$.ajax({
 			    url: url, 
@@ -180,9 +187,6 @@
 			height: 20%;
 		}
 
-		#userName{
-			width: 30%;
-		}
 		button{
 			margin: 10px;
 		}
@@ -201,6 +205,12 @@
 
 	<div id="LoadingDiv" style="visibility: hidden;">
 		<img height="150px" width="230px" src="loading.gif" alt="" /></div>
+
+	<br><br>
+	<input type="text" id="serverIP" placeholder="Server IP" value="127.0.0.1:5000"></input>
+	<br><br>
+	<button class="waves-effect waves-light btn" onclick="setServer()">SET SERVER IP</button>
+
 
     <script type="text/javascript" src="js/materialize.min.js"></script>
 </body>
