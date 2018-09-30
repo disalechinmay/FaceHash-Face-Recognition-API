@@ -2,6 +2,7 @@ from flask import Flask
 from flask import request, jsonify, render_template
 from flask_cors import CORS, cross_origin
 
+import time
 import cv2
 from imutils import face_utils
 import numpy as np
@@ -196,7 +197,7 @@ def train_POST():
 
 @app.route('/recognize/', methods=['POST'])
 def recognize_POST():
-	tf.keras.backend.clear_session()
+	global RECOGNIZE_MUTEX
 
 	# Take in base64 string and return PIL image
 	def stringToImage(base64_string):
@@ -206,7 +207,6 @@ def recognize_POST():
 	# convert PIL Image to an RGB image( technically a numpy array ) that's compatible with opencv
 	def toRGB(image):
 		return cv2.cvtColor(np.array(image), cv2.COLOR_BGR2RGB)
-
 
 	def stringToBase64(s):
 		return base64.b64encode(s.encode('utf-8'))
@@ -243,10 +243,6 @@ def recognize_POST():
 		)
 
 	def recognizeFace(frame):
-		
-		print("[LOG] -> LOADING MODEL...")
-		model = keras.models.load_model(masterPath)
-		print("[LOG] -> MODEL LOADED.")
 
 		#Convert the frame to grayscale
 		grayFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -275,10 +271,18 @@ def recognize_POST():
 				npratios.append(encoded[0])
 				npratios = np.array(npratios)
 
-				import time
+				print("[LOG] -> LOADING MODEL...")
+
+				session = tf.Session()
+				tf.keras.backend.set_session(session)
+				model = keras.models.load_model(masterPath)
+
+				print("[LOG] -> MODEL LOADED.")
 
 				start_time = time.time()
 				kerasOutput = model.predict(npratios)
+				tf.keras.backend.clear_session()
+
 				detection_time = time.time()-start_time
 				print("\n--- Detection time: %s seconds ---" % (time.time() - start_time))
 				print("\nKERAS O/P: {}".format(kerasOutput))
@@ -291,10 +295,9 @@ def recognize_POST():
 					if(maxValue < value):
 						maxValue = value
 				
-				if(maxValue == kerasOutput[0][0] and maxValue > 0.999):
+				if(maxValue == kerasOutput[0][0] and maxValue > 0.9999):
 					confidence = kerasOutput[0][0]
 					print("[LOG] -> RETURNING SUCCESS...")
-					print("\nKERAS O/P: {}".format(kerasOutput))
 					return jsonify(
 						responseType = "SUCCESS",
 						successDescription = "Face recognized successfully.",
@@ -304,7 +307,6 @@ def recognize_POST():
 				else:
 					print("[LOG] -> RETURNING FAILURE...")
 					confidence = kerasOutput[0][0]
-					print("\nKERAS O/P: {}".format(kerasOutput))
 					return jsonify(
 						responseType = "FAILURE",
 						failureDescription = "Face not recognized",
