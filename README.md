@@ -2,8 +2,6 @@
 Minimal API for face recognition.   
 <br>
 [![start here](https://img.shields.io/badge/Coverage-75%25-brightgreen.svg?longCache=true&style=for-the-badge)](https://github.com/disalechinmay/FaceHash-Face-Recognition-API/blob/master/README.md)
-.
-[![hosting status](https://img.shields.io/badge/HOSTING%20STATUS-NOT%20HOSTED-orange.svg?longCache=true&style=for-the-badge)](https://github.com/disalechinmay/FaceHash-Face-Recognition-API/blob/master/README.md)
 
 <br><br>
 [![start here](https://img.shields.io/badge/DOCUMENTATION-What%20is%20this%20all%20about%3F-brightgreen.svg?longCache=true&style=for-the-badge)](https://github.com/disalechinmay/FaceHash-Face-Recognition-API/blob/master/README.md)
@@ -23,15 +21,14 @@ The main aim of this project is to create a minimal API for beginners so that th
 2. Server processes the image in following manner :
     - Detects faces using Haar cascades. ([Frontal face detector](https://github.com/opencv/opencv/tree/master/data/haarcascades))
     - Detect facial landmarks of detected face using [DLIB](https://github.com/davisking/dlib)
-    - Take ratios between a select few of these landmarks. [Check here](https://github.com/disalechinmay/FaceHash-Face-Recognition)
+    - Encode these landmarks
     - Run the Keras model which will recognize the user's face. **(Respective Keras model will be fetched from 'HOME:`API_KEY`'.)**
 3. Return a JSON response to the client.
 
 <br>
 
 
-**Training a new face will work in a similar way. Only the client will send at least 50 photos (Recommended : 100 photos) (casted as String(base64(Image))) and then Keras model will be retrained.** <br>\
-**! WARNING : The API will be disabled for that particular Keras model during retraining the model !** <br>\
+**Training a new face will work in a similar way. Only the client will send 10 photos (casted as String(base64(Image))) and then Keras model will be retrained.** <br>\
 **![CHECK THIS](https://github.com/disalechinmay/FaceHash-Face-Recognition-API/blob/master/Front%20end/client.html) FOR DETAILS REGARDING HOW TO CONVERT IMAGES TO BE SENT TO SERVER**
 
 
@@ -81,15 +78,8 @@ The main aim of this project is to create a minimal API for beginners so that th
 ## POTENTIAL PROBLEMS:
 1. Will server respond while model is being retrained ?
 2. If yes, how will you handle requests to the model that is being retrained?
-3. Why 50 ~ 100 photos to retrain? Should developers be given a choice here?
-4. Should developers be given to choice to handle Keras hyperparameters?
-5. Should developers be given such kind of flexibility or just keep the API as minimal as possible?
+3. Should developers be given to choice to handle Keras hyperparameters?
+4. Should developers be given such kind of flexibility or just keep the API as minimal as possible?
 
-## THINGS IMPLEMENTED:
-- Sending base64 image to server.
-- Successfully recognized a face.
-- Successfully trained new face.
-- `API_KEY` and username's model existence validation in place.
 
-## YET TO BE IMPLEMENTED:
-- New `API_KEY` generation and integration
+USE API_KEY = "API_KEY_TEST_1"
