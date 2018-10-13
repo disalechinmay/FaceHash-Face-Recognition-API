@@ -47,6 +47,18 @@ def eye_aspect_ratio(eye):
 	# return the eye aspect ratio
 	return ear
 
+def eyebrowratiofunc(eyebrow, eye):
+	A = dist.euclidean(eyebrow[0], eye[1])
+	B = dist.euclidean(eyebrow[1], eye[1])
+ 	C = dist.euclidean(eyebrow[2], eye[1])
+
+	X = dist.euclidean(eyebrow[0], eyebrow[2])
+ 
+	ear = (A + B + C) / (3.0 * X)
+ 
+	return ear
+
+
 counter = 0
 
 while(True):
@@ -103,6 +115,12 @@ while(True):
 		if sar < 0.20:
 			print("SMILE!")
 
+
+		(eyebrowStart, eyebrowEnd) = face_utils.FACIAL_LANDMARKS_IDXS["left_eyebrow"]
+		eyebrow = shape[eyebrowStart:eyebrowEnd]
+		eyebrowratio = eyebrowratiofunc(eyebrow, leftEye)
+		if eyebrowratio > 1.0:
+			print("EYEBROW!")
 			
 	if cv2.waitKey(20) & 0xFF == ord('q') :
 		break
